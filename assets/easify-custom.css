@@ -83,13 +83,6 @@
 
 /* ── 4. Plateado / Dorado — chips con círculo metálico ────── */
 
-/* Ocultar el círculo nativo del app (tiene background-color inline) */
-.atelier-metal-chip > span[style*="background"],
-.atelier-metal-chip > div[style*="background"],
-.atelier-metal-chip > img {
-  display: none !important;
-}
-
 .atelier-metal-chip {
   display: inline-flex !important;
   align-items: center !important;

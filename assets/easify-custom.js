@@ -62,72 +62,81 @@
   function enhanceMetalOptions(root) {
     root = root || document;
 
-    /* Buscar dentro de los contenedores TPO */
-    root.querySelectorAll('.tpo_option-set-wrapper, [class*="tpo_option"]').forEach(function (container) {
-      /* Botones de opción dentro del bloque de tipo "buttons" */
-      var items = container.querySelectorAll(
-        '.tpo_buttons-wrapper label, ' +
-        '.tpo_button_option_value, ' +
-        '[class*="tpo_shape_"] span, ' +
-        '[class*="tpo_shape_"]'
-      );
+    /*
+     * IMPORTANTE: solo apuntar a los LABELS (un label por opción).
+     * No incluir .tpo_button_option_value ni spans internos —
+     * si no, el mismo chip se procesa varias veces y aparecen múltiples círculos.
+     */
+    root.querySelectorAll(
+      '.tpo_buttons-wrapper label, label[class*="tpo_shape_"]'
+    ).forEach(function (label) {
+      if (label.dataset.atelierMetal) return; /* ya procesado */
 
-      items.forEach(function (item) {
-        if (item.dataset.atelierMetal) return; /* ya procesado */
+      /* Leer el texto SOLO del span de texto, no del label entero
+         (el label puede contener texto de colores hex u otros spans) */
+      var textEl = label.querySelector('.tpo_button_option_value, [class*="tpo_button"][class*="value"], [class*="tpo_option-value"]');
+      var text   = (textEl ? textEl.textContent : label.textContent).trim().toLowerCase();
 
-        var text = (item.textContent || '').trim().toLowerCase();
+      var metalKey = null;
+      if (text.includes('plateado')) metalKey = 'plateado';
+      if (text.includes('dorado'))   metalKey = 'dorado';
+      if (!metalKey) return;
 
-        var metalKey = null;
-        if (text === 'plateado' || text.startsWith('plateado')) metalKey = 'plateado';
-        if (text === 'dorado'   || text.startsWith('dorado'))   metalKey = 'dorado';
-        if (!metalKey) return;
+      var config = METAL_OPTIONS[metalKey];
+      label.dataset.atelierMetal = metalKey;
+      label.classList.add('atelier-metal-chip');
 
-        var config = METAL_OPTIONS[metalKey];
-        item.dataset.atelierMetal = metalKey;
-        item.classList.add('atelier-metal-chip');
+      /*
+       * Encontrar el swatch que el app ya renderizó entre los hijos directos
+       * (cualquier hijo que NO sea input ni el span de texto).
+       * En lugar de inyectar un dot nuevo, reutilizamos ese elemento:
+       * le borramos el inline style y le aplicamos nuestra clase de gradiente.
+       */
+      var swatchEl = null;
+      Array.from(label.children).forEach(function (child) {
+        var tag = child.tagName.toLowerCase();
+        if (tag === 'input') return;             /* saltar inputs */
+        if (child === textEl)  return;            /* saltar el span de texto */
+        if (child.classList.contains('atelier-metal-dot')) return; /* ya es el nuestro */
+        swatchEl = child;                         /* primer candidato = swatch del app */
+      });
 
-        /* Ocultar el círculo nativo del app (tiene background-color inline) */
-        item.querySelectorAll('span[style*="background"], div[style*="background"], img').forEach(function (native) {
-          native.style.display = 'none';
-        });
-
-        /* Insertar nuestro círculo metálico */
+      if (swatchEl) {
+        /* Reutilizar el swatch existente: limpiar estilos inline y aplicar gradiente */
+        swatchEl.removeAttribute('style');
+        swatchEl.classList.add('atelier-metal-dot', config.dotClass);
+      } else {
+        /* El app no renderizó swatch, inyectamos el nuestro */
         var dot = document.createElement('span');
         dot.className = 'atelier-metal-dot ' + config.dotClass;
         dot.setAttribute('aria-hidden', 'true');
-        item.insertBefore(dot, item.firstChild);
+        label.insertBefore(dot, label.firstChild);
+      }
 
-        /* Sincronizar estado is-selected */
-        var input = item.querySelector('input[type="radio"], input[type="checkbox"]');
-        if (!input) {
-          /* Si el propio item es un label, buscar el input hermano */
-          var forId = item.getAttribute('for');
-          if (forId) input = document.getElementById(forId);
-        }
-
-        if (input) {
-          syncSelected(item, input);
-          input.addEventListener('change', function () {
-            var name = input.name;
-            if (name) {
-              document.querySelectorAll('input[name="' + CSS.escape(name) + '"]').forEach(function (sib) {
-                var sibItem = sib.closest('[data-atelier-metal]') || document.querySelector('label[for="' + CSS.escape(sib.id) + '"][data-atelier-metal]');
-                if (sibItem) sibItem.classList.remove('is-selected');
-              });
-            }
-            syncSelected(item, input);
-          });
-        }
-
-        item.addEventListener('click', function () {
-          var parent = item.parentElement;
-          if (parent) {
-            parent.querySelectorAll('[data-atelier-metal]').forEach(function (sib) {
-              sib.classList.remove('is-selected');
+      /* Sincronizar estado is-selected con el input de radio/checkbox */
+      var input = label.querySelector('input[type="radio"], input[type="checkbox"]');
+      if (input) {
+        syncSelected(label, input);
+        input.addEventListener('change', function () {
+          var name = input.name;
+          if (name) {
+            document.querySelectorAll('input[name="' + CSS.escape(name) + '"]').forEach(function (sib) {
+              var sibLabel = sib.closest('label[data-atelier-metal]');
+              if (sibLabel) sibLabel.classList.remove('is-selected');
             });
           }
-          item.classList.add('is-selected');
+          syncSelected(label, input);
         });
+      }
+
+      label.addEventListener('click', function () {
+        var parent = label.parentElement;
+        if (parent) {
+          parent.querySelectorAll('[data-atelier-metal]').forEach(function (sib) {
+            sib.classList.remove('is-selected');
+          });
+        }
+        label.classList.add('is-selected');
       });
     });
   }
