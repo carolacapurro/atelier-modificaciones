@@ -20,46 +20,65 @@
   pointer-events: none !important;
 }
 
-/* ── 2. Tipografía — aplicar Outfit a TODO el bloque TPO ──── */
-/* Usar * para alcanzar opciones condicionales/anidadas también */
+/* ── 2. Base: Outfit en todo el bloque TPO ───────────────── */
 .tpo_option-set-wrapper,
 .tpo_option-set-wrapper * {
   font-family: 'Outfit', sans-serif !important;
   text-transform: none !important;
 }
 
-/* Labels de sección: peso 600, tamaño pequeño */
+/* ── 3. Jerarquía tipográfica ────────────────────────────── */
+
+/* Nivel 1 — Títulos de sección (Color Cuero, Detalles, Quiero Dijes…)
+   Mismo tamaño y peso en todos */
 .tpo_option-set-wrapper .form__label,
 [class*="tpo_option-label"],
-[class*="tpo_label"],
 [class*="tpo_option-name"],
+[class*="tpo_label"],
 [class*="tpo_title"],
 [class*="tpo_heading"] {
-  font-family: 'Outfit', sans-serif !important;
   font-size: 0.78rem !important;
   font-weight: 600 !important;
-  text-transform: none !important;
   letter-spacing: 0.04em !important;
   color: var(--color-foreground) !important;
+  font-style: normal !important;
 }
 
-/* Texto de chips / botones / swatches */
-.tpo_button_option_value,
-[class*="tpo_swatch-label"],
-[class*="tpo_item-label"],
-[class*="tpo_option-value"] {
-  font-family: 'Outfit', sans-serif !important;
-  font-size: 0.875rem !important;
+/* Nivel 2 — Nombres de los dijes y valores de swatches de imagen
+   (Chapita, Valija, Corazón…): sin bold, algo más chico que el título */
+[class*="tpo_image"] [class*="label"],
+[class*="tpo_image"] [class*="name"],
+[class*="tpo_swatch"] [class*="label"],
+[class*="tpo_swatch"] [class*="name"],
+[class*="tpo_option-value"],
+.tpo_button_option_value {
+  font-size: 0.75rem !important;
   font-weight: 400 !important;
   letter-spacing: 0.02em !important;
-  text-transform: none !important;
+  font-style: normal !important;
 }
 
-/* ── 3. Input de texto (grabado) ─────────────────────────── */
+/* Nivel 3 — Aclaraciones en italic (Aplica para ojalillos…, Charm colocado…)
+   light + chico */
+.tpo_option-set-wrapper em,
+.tpo_option-set-wrapper i,
+[class*="tpo_description"],
+[class*="tpo_note"],
+[class*="tpo_desc"],
+[class*="tpo_hint"],
+[class*="tpo_info"]:not([class*="tooltip"]) {
+  font-size: 0.7rem !important;
+  font-weight: 300 !important;
+  font-style: italic !important;
+  letter-spacing: 0.01em !important;
+  color: var(--color-foreground) !important;
+  opacity: 0.75;
+}
+
+/* ── 4. Input de texto (grabado) ─────────────────────────── */
 .tpo_option-input.tpo_text-box,
 .tpo_option-input[type="text"],
 .tpo_option-set-wrapper textarea {
-  font-family: 'Outfit', sans-serif !important;
   font-size: 0.875rem !important;
   font-weight: 400 !important;
   border: 1.5px solid var(--color-border, #e0dbd3) !important;
@@ -71,7 +90,7 @@
   outline: none !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  text-transform: none !important;
+  font-style: normal !important;
 }
 
 .tpo_option-input.tpo_text-box:focus,
@@ -81,8 +100,21 @@
   box-shadow: none !important;
 }
 
-/* ── 4. Plateado / Dorado — chips con círculo metálico ────── */
+/* ── 5. Plateado / Dorado — chips con círculo metálico ────── */
 
+/*
+ * Estrategia: el JS solo agrega .atelier-metal-chip y data-atelier-metal
+ * al label, sin tocar el DOM. El círculo se inyecta 100% por CSS con ::before.
+ * Cualquier círculo que renderice el app se oculta con la regla de abajo.
+ */
+
+/* Ocultar TODO elemento con background inline que esté dentro del chip
+   (el swatch nativo del app siempre tiene background-color en inline style) */
+.atelier-metal-chip [style*="background"] {
+  display: none !important;
+}
+
+/* Layout del chip */
 .atelier-metal-chip {
   display: inline-flex !important;
   align-items: center !important;
@@ -92,13 +124,30 @@
   border-radius: 6px !important;
   background: transparent !important;
   cursor: pointer !important;
-  font-family: 'Outfit', sans-serif !important;
   font-size: 0.875rem !important;
   font-weight: 400 !important;
-  text-transform: none !important;
   color: var(--color-foreground) !important;
   transition: border-color 0.15s, background 0.15s !important;
   user-select: none !important;
+}
+
+/* Círculo metálico via pseudo-elemento (UNO solo, imposible duplicarlo) */
+.atelier-metal-chip::before {
+  content: '' !important;
+  display: inline-block !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.atelier-metal-chip[data-atelier-metal="plateado"]::before {
+  background: linear-gradient(135deg, #e8e8e8 0%, #a8a8a8 50%, #d4d4d4 100%) !important;
+}
+
+.atelier-metal-chip[data-atelier-metal="dorado"]::before {
+  background: linear-gradient(135deg, #f5e199 0%, #c9a84c 50%, #f0d060 100%) !important;
 }
 
 .atelier-metal-chip:hover {
@@ -111,38 +160,19 @@
   color: var(--color-background, #fff) !important;
 }
 
-.atelier-metal-chip.is-selected .atelier-metal-dot {
+.atelier-metal-chip.is-selected::before {
   box-shadow: 0 0 0 2px var(--color-background, #fff) !important;
 }
 
-/* Nuestro círculo metálico inyectado por JS */
-.atelier-metal-dot {
-  width: 16px !important;
-  height: 16px !important;
-  border-radius: 50% !important;
-  flex-shrink: 0 !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  display: inline-block !important;
-}
-
-.atelier-metal-dot--silver {
-  background: linear-gradient(135deg, #e8e8e8 0%, #a8a8a8 50%, #d4d4d4 100%) !important;
-}
-
-.atelier-metal-dot--gold {
-  background: linear-gradient(135deg, #f5e199 0%, #c9a84c 50%, #f0d060 100%) !important;
-}
-
-/* ── 5. Mensaje de error del grabado ─────────────────────── */
+/* ── 6. Mensaje de error del grabado ─────────────────────── */
 .atelier-grabado-error {
   display: none;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 400;
+  font-size: 0.72rem;
+  font-weight: 300;
   color: #c0392b;
   margin-top: 4px;
   line-height: 1.4;
-  text-transform: none;
+  font-style: normal;
 }
 
 .atelier-grabado-error.is-visible {

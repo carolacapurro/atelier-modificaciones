@@ -59,61 +59,36 @@
   }, true);
 
   /* ── 2. Chips de Plateado / Dorado ───────────────────────── */
+  /*
+   * Estrategia definitiva: el JS SOLO agrega clase + data-atributo al label.
+   * El círculo metálico lo pone el CSS con ::before (un solo elemento,
+   * imposible que se duplique). El swatch nativo del app queda oculto por CSS.
+   */
   function enhanceMetalOptions(root) {
     root = root || document;
 
-    /*
-     * IMPORTANTE: solo apuntar a los LABELS (un label por opción).
-     * No incluir .tpo_button_option_value ni spans internos —
-     * si no, el mismo chip se procesa varias veces y aparecen múltiples círculos.
-     */
     root.querySelectorAll(
       '.tpo_buttons-wrapper label, label[class*="tpo_shape_"]'
     ).forEach(function (label) {
       if (label.dataset.atelierMetal) return; /* ya procesado */
 
-      /* Leer el texto SOLO del span de texto, no del label entero
-         (el label puede contener texto de colores hex u otros spans) */
-      var textEl = label.querySelector('.tpo_button_option_value, [class*="tpo_button"][class*="value"], [class*="tpo_option-value"]');
-      var text   = (textEl ? textEl.textContent : label.textContent).trim().toLowerCase();
+      /* Leer texto solo del span de texto (no del label entero
+         para evitar falsos positivos por colores hex u otros spans) */
+      var textEl = label.querySelector(
+        '.tpo_button_option_value, [class*="tpo_button_value"], [class*="tpo_option-value"]'
+      );
+      var text = (textEl ? textEl.textContent : label.textContent).trim().toLowerCase();
 
       var metalKey = null;
       if (text.includes('plateado')) metalKey = 'plateado';
       if (text.includes('dorado'))   metalKey = 'dorado';
       if (!metalKey) return;
 
-      var config = METAL_OPTIONS[metalKey];
+      /* Marcar el label — el CSS hace el resto */
       label.dataset.atelierMetal = metalKey;
       label.classList.add('atelier-metal-chip');
 
-      /*
-       * Encontrar el swatch que el app ya renderizó entre los hijos directos
-       * (cualquier hijo que NO sea input ni el span de texto).
-       * En lugar de inyectar un dot nuevo, reutilizamos ese elemento:
-       * le borramos el inline style y le aplicamos nuestra clase de gradiente.
-       */
-      var swatchEl = null;
-      Array.from(label.children).forEach(function (child) {
-        var tag = child.tagName.toLowerCase();
-        if (tag === 'input') return;             /* saltar inputs */
-        if (child === textEl)  return;            /* saltar el span de texto */
-        if (child.classList.contains('atelier-metal-dot')) return; /* ya es el nuestro */
-        swatchEl = child;                         /* primer candidato = swatch del app */
-      });
-
-      if (swatchEl) {
-        /* Reutilizar el swatch existente: limpiar estilos inline y aplicar gradiente */
-        swatchEl.removeAttribute('style');
-        swatchEl.classList.add('atelier-metal-dot', config.dotClass);
-      } else {
-        /* El app no renderizó swatch, inyectamos el nuestro */
-        var dot = document.createElement('span');
-        dot.className = 'atelier-metal-dot ' + config.dotClass;
-        dot.setAttribute('aria-hidden', 'true');
-        label.insertBefore(dot, label.firstChild);
-      }
-
-      /* Sincronizar estado is-selected con el input de radio/checkbox */
+      /* Sincronizar is-selected con el input de radio/checkbox */
       var input = label.querySelector('input[type="radio"], input[type="checkbox"]');
       if (input) {
         syncSelected(label, input);
@@ -132,7 +107,7 @@
       label.addEventListener('click', function () {
         var parent = label.parentElement;
         if (parent) {
-          parent.querySelectorAll('[data-atelier-metal]').forEach(function (sib) {
+          parent.querySelectorAll('label[data-atelier-metal]').forEach(function (sib) {
             sib.classList.remove('is-selected');
           });
         }
