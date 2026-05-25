@@ -87,27 +87,14 @@
       label.dataset.atelierMetal = metalKey;
       label.classList.add('atelier-metal-chip');
 
-      /* Sincronizar is-selected con el input interno */
-      var input = label.querySelector('input[type="radio"], input[type="checkbox"]');
-      if (input) {
-        syncSelected(label, input);
-        input.addEventListener('change', function () {
-          syncSelected(label, input);
-        });
-      }
-
-      /* Single-select: al clickear, desmarcar hermanos dentro del MISMO grupo.
-         Usamos closest() para subir al contenedor común (.tpo_buttons-wrapper),
-         no solo al parentElement inmediato (que es el wrapper del botón individual). */
+      /* Single-select: al clickear este chip, desmarcar TODOS los otros chips
+         metálicos de la página y marcar solo el clickeado.
+         (Usar document.querySelectorAll es más seguro que recorrer el DOM
+         con closest() porque la estructura de contenedores del app varía.) */
       label.addEventListener('click', function () {
-        var group = label.closest(
-          '.tpo_buttons-wrapper, [class*="tpo_button"][class*="wrapper"], .tpo_option-container'
-        );
-        if (group) {
-          group.querySelectorAll('label[data-atelier-metal]').forEach(function (sib) {
-            if (sib !== label) sib.classList.remove('is-selected');
-          });
-        }
+        document.querySelectorAll('label[data-atelier-metal]').forEach(function (chip) {
+          chip.classList.remove('is-selected');
+        });
         label.classList.add('is-selected');
       });
     });
@@ -287,13 +274,18 @@
    * el browser NO dispara el evento 'change' automáticamente,
    * por lo que el <variant-picker> del tema nunca actualiza la imagen.
    *
-   * Solución: parchar el setter de .checked en los inputs del
-   * variant-picker para que siempre dispare 'change' al activarse.
+   * Solución A: parchar el setter de .checked en los inputs del
+   *   variant-picker para que siempre dispare 'change' al activarse.
+   *
+   * Solución B (fallback): escuchar clicks en los swatches de TPO y
+   *   disparar 'change' manualmente sobre el radio ya checkeado, para
+   *   cubrir el caso en que TPO no use el setter sino algún otro mecanismo.
    */
   function initVariantBridge() {
     var variantPicker = document.querySelector('variant-picker');
     if (!variantPicker) return;
 
+    /* ── A: Patch setter ────────────────────────────────────────── */
     var nativeDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked');
 
     function patchInput(input) {
@@ -333,6 +325,30 @@
         });
       });
     }).observe(variantPicker, { childList: true, subtree: true });
+
+    /* ── B: Click bridge ────────────────────────────────────────── */
+    /*
+     * Cuando el usuario hace click en un swatch de color del app TPO,
+     * esperamos 350 ms (tiempo suficiente para que TPO actualice su estado)
+     * y luego disparamos 'change' sobre el radio que TPO dejó checkeado
+     * dentro del variant-picker. Esto cubre el caso en que TPO use un
+     * mecanismo distinto al setter de .checked (ej: setAttribute, innerHTML, etc.)
+     */
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest) return;
+      /* Detectar clicks dentro de cualquier elemento de color TPO */
+      var tpoColor = e.target.closest('[class*="tpo_color"]');
+      if (!tpoColor) return;
+
+      setTimeout(function () {
+        var checked = variantPicker.querySelector('fieldset input[type="radio"]:checked');
+        if (checked && !checked._atelierFiring) {
+          checked._atelierFiring = true;
+          checked.dispatchEvent(new Event('change', { bubbles: true }));
+          checked._atelierFiring = false;
+        }
+      }, 350);
+    }, true);
   }
 
   /* ── 5. Scroll de fotos al hacer hover sobre el gallery ─────── */
