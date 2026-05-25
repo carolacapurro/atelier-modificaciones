@@ -25,6 +25,15 @@
 .tpo_option-set-wrapper * {
   font-family: 'Outfit', sans-serif !important;
   text-transform: none !important;
+  /*
+   * Estos dos valores actúan como "piso" para TODO el wrapper.
+   * Cualquier elemento que el app ponga en bold/grande y que
+   * no matchee nuestros selectores específicos queda en 400 / 0.82rem.
+   * Los selectores más específicos (títulos = 0.9rem/600) ganan por
+   * especificidad CSS aunque ambos usen !important.
+   */
+  font-weight: 400 !important;
+  font-size: 0.82rem !important;
 }
 
 /* ── 3. Jerarquía tipográfica ────────────────────────────── */
