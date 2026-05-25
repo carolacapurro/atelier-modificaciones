@@ -203,3 +203,19 @@
 .atelier-grabado-error.is-visible {
   display: block;
 }
+
+/* ── 8. Hero principal: botón gris oscuro ────────────────── */
+/*
+ * El botón "Ver más / Personalizar" del hero usa button-secondary
+ * (blanco por defecto). Lo reemplazamos con gris oscuro.
+ */
+#shopify-section-hero_iyt6zg .button-secondary {
+  background-color: #3a3a3a !important;
+  border-color: #3a3a3a !important;
+  color: #ffffff !important;
+}
+
+#shopify-section-hero_iyt6zg .button-secondary:hover {
+  background-color: #1c1c1c !important;
+  border-color: #1c1c1c !important;
+}

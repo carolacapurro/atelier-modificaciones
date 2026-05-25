@@ -95,7 +95,7 @@
         "vertical_alignment": "center",
         "align_baseline": false,
         "horizontal_alignment_flex_direction_column": "flex-start",
-        "vertical_alignment_flex_direction_column": "center",
+        "vertical_alignment_flex_direction_column": "flex-end",
         "gap": 16,
         "section_width": "page-width",
         "section_height": "large",
@@ -108,7 +108,7 @@
         "blurred_reflection": false,
         "reflection_opacity": 75,
         "padding-block-start": 8,
-        "padding-block-end": 0
+        "padding-block-end": 64
       }
     },
     "marquee_9x4K9R": {
