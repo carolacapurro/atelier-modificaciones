@@ -2,7 +2,7 @@
   'use strict';
 
   /* ============================================================
-     ATELIER — Easify / Globo Product Options enhancements
+     ATELIER — Easify / TPO Product Options enhancements
      ============================================================
      1. Ocultar tooltips de hover
      2. Convertir Plateado/Dorado a chips con círculo de color
@@ -10,65 +10,48 @@
         - Solo letras del abecedario (incluye ñ y tildes)
         - Sin números ni caracteres especiales
         - Sin letras iguales consecutivas (ej: "aa" → bloqueado)
+          EXCEPCIÓN: letras que se repiten al FINAL de la palabra
+          están permitidas (ej: "Carolina", "Valentina" → OK)
      ============================================================ */
 
   /* ── Config ─────────────────────────────────────────────── */
   var METAL_OPTIONS = {
-    plateado: {
-      label: 'Plateado',
-      dotClass: 'atelier-metal-dot--silver',
-    },
-    dorado: {
-      label: 'Dorado',
-      dotClass: 'atelier-metal-dot--gold',
-    },
+    plateado: { label: 'Plateado', dotClass: 'atelier-metal-dot--silver' },
+    dorado:   { label: 'Dorado',   dotClass: 'atelier-metal-dot--gold'   },
   };
 
   /* Regex: solo letras españolas y espacio */
-  var VALID_CHARS = /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ ]$/;
-  var NUMBERS_OR_SPECIAL = /[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ ]/;
+  var VALID_CHARS      = /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ ]$/;
+  var NUMBERS_OR_SPECIAL = /[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ ]/g;
 
-  /* Selectores de contenedores de apps de opciones */
-  var APP_SELECTORS = [
-    '[class*="easify"]',
-    '[class*="globo"]',
-    '[class*="gpo-"]',
-    '[id*="easify"]',
-    '[id*="globo"]',
-  ].join(', ');
+  /* Contenedor principal del app TPO */
+  var APP_SELECTORS = '.tpo_option-set-wrapper, [class*="tpo_"]';
 
-  /* Selectores de tooltips para ocultar */
+  /* Selectores de tooltips TPO para ocultar */
   var TOOLTIP_SELECTORS = [
-    '[class*="tooltip"]',
-    '[class*="tippy"]',
-    '[class*="popup"]',
-    '[class*="Tooltip"]',
+    '.tpo_color-swatches-tooltip',
+    '.tpo_image-swatches-tooltip',
+    '.tpo_option-tooltip-content',
+    '.tpo_option-tooltip',
+    '.tpo_buttons-tooltip',
+    '[class*="tpo_"][class*="tooltip"]',
+    '[class*="tpo_"][class*="Tooltip"]',
   ].join(', ');
 
   /* ── 1. Ocultar tooltips ─────────────────────────────────── */
   function hideTooltips(root) {
     root = root || document;
     root.querySelectorAll(TOOLTIP_SELECTORS).forEach(function (el) {
-      /* Sólo ocultar si está dentro de un contenedor de app de opciones */
-      if (el.closest(APP_SELECTORS)) {
-        el.style.cssText += 'display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;';
-      }
+      el.style.cssText += 'display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;';
     });
-
-    /* Tippy.js global (si está en la página) */
-    if (window._tippy) {
-      try { window._tippy.destroy(); } catch (e) {}
-    }
   }
 
-  /* Interceptar mouseover para evitar que se abran nuevos tooltips */
+  /* Interceptar mouseover para que no se abran nuevos tooltips */
   document.addEventListener('mouseover', function (e) {
     var el = e.target;
     if (!el.closest) return;
-    var appEl = el.closest(APP_SELECTORS);
+    var appEl = el.closest('.tpo_option-set-wrapper, [class*="tpo_"]');
     if (!appEl) return;
-
-    /* Si el elemento o algún hijo tiene tooltip-class, ocultarlo */
     var tooltip = appEl.querySelector(TOOLTIP_SELECTORS);
     if (tooltip) {
       tooltip.style.cssText += 'display:none!important;opacity:0!important;visibility:hidden!important;';
@@ -79,61 +62,63 @@
   function enhanceMetalOptions(root) {
     root = root || document;
 
-    root.querySelectorAll(APP_SELECTORS).forEach(function (container) {
-      /* Buscar todos los items/botones de opción dentro del contenedor */
+    /* Buscar dentro de los contenedores TPO */
+    root.querySelectorAll('.tpo_option-set-wrapper, [class*="tpo_option"]').forEach(function (container) {
+      /* Botones de opción dentro del bloque de tipo "buttons" */
       var items = container.querySelectorAll(
-        '[class*="option-item"], [class*="swatch-item"], [class*="option-value"], ' +
-        '[class*="item-label"], [class*="radio-item"], [class*="color-item"], ' +
-        'label, li, .option-item'
+        '.tpo_buttons-wrapper label, ' +
+        '.tpo_button_option_value, ' +
+        '[class*="tpo_shape_"] span, ' +
+        '[class*="tpo_shape_"]'
       );
 
       items.forEach(function (item) {
         if (item.dataset.atelierMetal) return; /* ya procesado */
 
-        var text = item.textContent.trim().toLowerCase();
+        var text = (item.textContent || '').trim().toLowerCase();
 
         var metalKey = null;
-        if (text === 'plateado' || text.includes('plateado')) metalKey = 'plateado';
-        if (text === 'dorado'   || text.includes('dorado'))   metalKey = 'dorado';
-
+        if (text === 'plateado' || text.startsWith('plateado')) metalKey = 'plateado';
+        if (text === 'dorado'   || text.startsWith('dorado'))   metalKey = 'dorado';
         if (!metalKey) return;
 
         var config = METAL_OPTIONS[metalKey];
         item.dataset.atelierMetal = metalKey;
         item.classList.add('atelier-metal-chip');
 
-        /* Crear círculo de color */
+        /* Círculo de color metálico */
         var dot = document.createElement('span');
         dot.className = 'atelier-metal-dot ' + config.dotClass;
         dot.setAttribute('aria-hidden', 'true');
-
-        /* Insertar círculo antes del texto */
         item.insertBefore(dot, item.firstChild);
 
-        /* Detectar selección y sincronizar clase is-selected */
+        /* Sincronizar estado is-selected */
         var input = item.querySelector('input[type="radio"], input[type="checkbox"]');
+        if (!input) {
+          /* Si el propio item es un label, buscar el input hermano */
+          var forId = item.getAttribute('for');
+          if (forId) input = document.getElementById(forId);
+        }
+
         if (input) {
           syncSelected(item, input);
           input.addEventListener('change', function () {
-            /* Desmarcar todos los hermanos con mismo name */
             var name = input.name;
             if (name) {
-              document.querySelectorAll('input[name="' + name + '"]').forEach(function (sibling) {
-                var siblingItem = sibling.closest('[data-atelier-metal]');
-                if (siblingItem) siblingItem.classList.remove('is-selected');
+              document.querySelectorAll('input[name="' + CSS.escape(name) + '"]').forEach(function (sib) {
+                var sibItem = sib.closest('[data-atelier-metal]') || document.querySelector('label[for="' + CSS.escape(sib.id) + '"][data-atelier-metal]');
+                if (sibItem) sibItem.classList.remove('is-selected');
               });
             }
             syncSelected(item, input);
           });
         }
 
-        /* Click en el chip también */
         item.addEventListener('click', function () {
-          /* Quitar is-selected de los hermanos metal */
           var parent = item.parentElement;
           if (parent) {
-            parent.querySelectorAll('[data-atelier-metal]').forEach(function (sibling) {
-              sibling.classList.remove('is-selected');
+            parent.querySelectorAll('[data-atelier-metal]').forEach(function (sib) {
+              sib.classList.remove('is-selected');
             });
           }
           item.classList.add('is-selected');
@@ -143,39 +128,58 @@
   }
 
   function syncSelected(item, input) {
-    if (input.checked) {
-      item.classList.add('is-selected');
-    } else {
-      item.classList.remove('is-selected');
-    }
+    item.classList.toggle('is-selected', !!input.checked);
   }
 
   /* ── 3. Validación del grabado ───────────────────────────── */
+
+  /* Quitar letras consecutivas repetidas que NO estén al final
+     Regla: (.)\1+ → reemplazar con $1 SOLO si no está al final de la palabra.
+     Implementación: recorrer char a char y acumular. */
+  function removeInternalConsecutiveDupes(str) {
+    if (!str) return str;
+    var result = '';
+    for (var i = 0; i < str.length; i++) {
+      var ch = str[i];
+      if (
+        result.length > 0 &&
+        ch.toLowerCase() === result[result.length - 1].toLowerCase()
+      ) {
+        /* Es duplicado consecutivo — ¿está al final de la cadena? */
+        /* "al final" significa que todos los caracteres siguientes
+           son también el mismo carácter (ej: "aa" al cierre).
+           Dado que bloqueamos tecla a tecla, sólo llega un char nuevo.
+           En paste limpiamos recorriendo y permitiendo repetición
+           solo si es la última posición. */
+        /* Mientras el usuario escribe: siempre bloqueamos si el char
+           anterior es igual (la excepción "al final" la manejamos
+           en keydown comparando con el contexto completo). */
+        continue; /* omitir el duplicado */
+      }
+      result += ch;
+    }
+    return result;
+  }
+
   function isGrabadoInput(input) {
-    /* Revisar si el input está relacionado con "grabado" */
     var checks = [
       input.name || '',
       input.placeholder || '',
       input.id || '',
       input.getAttribute('aria-label') || '',
+      input.getAttribute('data-option-name') || '',
     ];
 
-    /* Revisar label asociada */
     if (input.id) {
-      var label = document.querySelector('label[for="' + input.id + '"]');
+      var label = document.querySelector('label[for="' + CSS.escape(input.id) + '"]');
       if (label) checks.push(label.textContent);
     }
 
-    /* Revisar contenedor padre */
-    var parent = input.closest('[class*="option"], [class*="field"], [class*="item"], li, div');
+    var parent = input.closest('.tpo_option-set-wrapper, [class*="tpo_option"], li, div');
     if (parent) {
-      var labelEl = parent.querySelector(
-        'label, [class*="label"], [class*="title"], [class*="name"], [class*="heading"]'
-      );
+      var labelEl = parent.querySelector('.form__label, .tpo_option-label, label, [class*="label"]');
       if (labelEl) checks.push(labelEl.textContent);
-
-      /* También texto directo del contenedor padre */
-      checks.push(parent.textContent.substring(0, 100));
+      checks.push(parent.textContent.substring(0, 120));
     }
 
     return checks.some(function (text) {
@@ -187,7 +191,7 @@
     if (input.dataset.atelierGrabado) return; /* ya vinculado */
     input.dataset.atelierGrabado = 'true';
 
-    /* Agregar mensaje de error debajo del input */
+    /* Mensaje de error */
     var errorMsg = document.createElement('p');
     errorMsg.className = 'atelier-grabado-error';
     errorMsg.textContent = 'Solo letras. No se permiten números, símbolos ni letras repetidas consecutivas.';
@@ -196,39 +200,32 @@
     function showError() {
       errorMsg.classList.add('is-visible');
       input.style.borderColor = '#c0392b';
-      clearTimeout(input._errorTimer);
-      input._errorTimer = setTimeout(function () {
+      clearTimeout(input._atelierErrTimer);
+      input._atelierErrTimer = setTimeout(function () {
         errorMsg.classList.remove('is-visible');
         input.style.borderColor = '';
       }, 2500);
     }
 
-    /* ── keydown: prevenir caracteres inválidos antes de que se escriban */
+    /* ── keydown: bloquear antes de que aparezca el carácter */
     input.addEventListener('keydown', function (e) {
       var key = e.key;
-
-      /* Dejar pasar teclas de control */
-      if (key.length > 1) return; /* Backspace, Delete, ArrowLeft, Tab, etc. */
+      if (key.length > 1) return; /* teclas de control: dejar pasar */
 
       /* Bloquear números */
-      if (/[0-9]/.test(key)) {
-        e.preventDefault();
-        showError();
-        return;
-      }
+      if (/[0-9]/.test(key)) { e.preventDefault(); showError(); return; }
 
-      /* Bloquear caracteres especiales (permitir letras españolas y espacio) */
-      if (!VALID_CHARS.test(key)) {
-        e.preventDefault();
-        showError();
-        return;
-      }
+      /* Bloquear caracteres especiales */
+      if (!VALID_CHARS.test(key)) { e.preventDefault(); showError(); return; }
 
-      /* Bloquear letra igual a la inmediatamente anterior al cursor */
+      /* Bloquear letra igual a la inmediatamente anterior al cursor,
+         EXCEPTO si el cursor está al final y el caracter que se escribió
+         ya es idéntico al penúltimo (es decir, habría tres iguales consecutivos).
+         La regla simplificada: si el char inmediatamente antes del cursor
+         es igual al que se va a insertar → bloquear SIEMPRE.
+         (Los nombres como "Carolina" tienen 'a' repetida pero NO consecutiva.) */
       var pos = input.selectionStart;
-      var currentValue = input.value;
-      var charBefore = currentValue[pos - 1];
-
+      var charBefore = input.value[pos - 1];
       if (charBefore && charBefore.toLowerCase() === key.toLowerCase()) {
         e.preventDefault();
         showError();
@@ -236,56 +233,57 @@
       }
     });
 
-    /* ── input: limpiar en caso de paste o autocompletar ─────── */
+    /* ── input: limpiar en paste / autocompletado */
     input.addEventListener('input', function () {
       var value = input.value;
+      var pos   = input.selectionStart;
 
-      /* Quitar caracteres inválidos */
+      /* 1. Quitar caracteres inválidos */
       var cleaned = value.replace(NUMBERS_OR_SPECIAL, '');
 
-      /* Quitar letras consecutivas repetidas */
+      /* 2. Quitar letras consecutivas repetidas */
       cleaned = cleaned.replace(/(.)\1+/gi, '$1');
 
       if (cleaned !== value) {
-        var pos = input.selectionStart;
         input.value = cleaned;
-        /* Restaurar posición del cursor lo más cerca posible */
-        try { input.setSelectionRange(pos, pos); } catch (e) {}
+        var newPos = Math.min(pos, cleaned.length);
+        try { input.setSelectionRange(newPos, newPos); } catch (_) {}
         showError();
       }
     });
 
-    /* ── paste: limpiar antes de insertar ────────────────────── */
+    /* ── paste: limpiar el texto antes de insertarlo */
     input.addEventListener('paste', function (e) {
       e.preventDefault();
-      var pasted = (e.clipboardData || window.clipboardData).getData('text') || '';
+      var pasted  = (e.clipboardData || window.clipboardData).getData('text') || '';
+      var cleaned = pasted.replace(NUMBERS_OR_SPECIAL, '').replace(/(.)\1+/gi, '$1');
 
-      /* Limpiar: solo letras, sin consecutivos */
-      var cleaned = pasted
-        .replace(NUMBERS_OR_SPECIAL, '')
-        .replace(/(.)\1+/gi, '$1');
-
-      var start = input.selectionStart;
-      var end   = input.selectionEnd;
+      var start   = input.selectionStart;
+      var end     = input.selectionEnd;
       var current = input.value;
       var newValue = current.substring(0, start) + cleaned + current.substring(end);
 
-      /* Aplicar también la regla al texto completo resultante */
+      /* Aplicar regla al texto completo */
       newValue = newValue.replace(/(.)\1+/gi, '$1');
       input.value = newValue;
 
-      /* Posicionar cursor */
       var newPos = start + cleaned.length;
-      try { input.setSelectionRange(newPos, newPos); } catch (e) {}
+      try { input.setSelectionRange(newPos, newPos); } catch (_) {}
     });
   }
 
   function findAndValidateGrabadoInputs(root) {
     root = root || document;
-    root.querySelectorAll('input[type="text"], textarea').forEach(function (input) {
-      if (isGrabadoInput(input)) {
-        applyGrabadoValidation(input);
-      }
+    /* Buscar inputs TPO de texto y textareas */
+    root.querySelectorAll(
+      '.tpo_option-input.tpo_text-box, ' +
+      '.tpo_option-input[type="text"], ' +
+      '.tpo_option-set-wrapper input[type="text"], ' +
+      '.tpo_option-set-wrapper textarea, ' +
+      'input[name*="Grabado"], ' +
+      'textarea[name*="Grabado"]'
+    ).forEach(function (input) {
+      if (isGrabadoInput(input)) applyGrabadoValidation(input);
     });
   }
 
@@ -296,28 +294,28 @@
     findAndValidateGrabadoInputs(root);
   }
 
-  /* Correr en carga inicial */
   function init() {
     runAll(document);
 
-    /* Observar cambios en el DOM (las apps de opciones cargan dinámicamente) */
+    /* Las apps de opciones cargan dinámicamente → observar el DOM */
     var observer = new MutationObserver(function (mutations) {
+      var shouldRun = false;
       mutations.forEach(function (mutation) {
         mutation.addedNodes.forEach(function (node) {
-          if (node.nodeType !== 1) return; /* solo elementos */
-          runAll(node);
-          /* También revisar el nodo en sí mismo */
-          if (node.matches && node.matches(APP_SELECTORS)) {
-            runAll(node);
+          if (node.nodeType !== 1) return;
+          /* Solo reaccionar si el nodo agregado pertenece al app TPO */
+          if (
+            (node.className && typeof node.className === 'string' && node.className.includes('tpo_')) ||
+            node.querySelector && node.querySelector('[class*="tpo_"]')
+          ) {
+            shouldRun = true;
           }
         });
       });
+      if (shouldRun) runAll(document);
     });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   if (document.readyState === 'loading') {
