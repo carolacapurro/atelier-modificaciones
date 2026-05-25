@@ -29,50 +29,53 @@
 
 /* ── 3. Jerarquía tipográfica ────────────────────────────── */
 
-/* Nivel 1 — Títulos de sección (Color Cuero, Detalles, Quiero Dijes…)
-   Mismo tamaño y peso en todos */
+/* Nivel 1 — Títulos de sección (Color Cuero, Detalles, Quiero Dijes…) */
 .tpo_option-set-wrapper .form__label,
 [class*="tpo_option-label"],
 [class*="tpo_option-name"],
 [class*="tpo_label"],
 [class*="tpo_title"],
 [class*="tpo_heading"] {
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
   font-weight: 600 !important;
-  letter-spacing: 0.04em !important;
+  letter-spacing: 0.03em !important;
   color: var(--color-foreground) !important;
   font-style: normal !important;
 }
 
 /* Nivel 2 — Nombres de los dijes y valores de swatches de imagen
-   (Chapita, Valija, Corazón…): sin bold, algo más chico que el título */
+   (Chapita, Valija, Corazón…): sin bold, más chico que el título */
 [class*="tpo_image"] [class*="label"],
 [class*="tpo_image"] [class*="name"],
 [class*="tpo_swatch"] [class*="label"],
 [class*="tpo_swatch"] [class*="name"],
 [class*="tpo_option-value"],
 .tpo_button_option_value {
-  font-size: 0.75rem !important;
+  font-size: 0.78rem !important;
   font-weight: 400 !important;
   letter-spacing: 0.02em !important;
   font-style: normal !important;
 }
 
 /* Nivel 3 — Aclaraciones en italic (Aplica para ojalillos…, Charm colocado…)
-   light + chico */
+   Tamaño = el de los títulos anteriores (0.78rem), weight light (300).
+   Usamos [style*="italic"] para atrapar lo que el app renderiza con inline style. */
 .tpo_option-set-wrapper em,
 .tpo_option-set-wrapper i,
+.tpo_option-set-wrapper [style*="italic"],
 [class*="tpo_description"],
 [class*="tpo_note"],
 [class*="tpo_desc"],
 [class*="tpo_hint"],
+[class*="tpo_guide"],
+[class*="tpo_message"],
+[class*="tpo_tip"],
 [class*="tpo_info"]:not([class*="tooltip"]) {
-  font-size: 0.7rem !important;
+  font-size: 0.78rem !important;
   font-weight: 300 !important;
   font-style: italic !important;
   letter-spacing: 0.01em !important;
   color: var(--color-foreground) !important;
-  opacity: 0.75;
 }
 
 /* ── 4. Input de texto (grabado) ─────────────────────────── */
