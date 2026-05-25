@@ -328,25 +328,77 @@
 
     /* ── B: Click bridge ────────────────────────────────────────── */
     /*
-     * Cuando el usuario hace click en un swatch de color del app TPO,
-     * esperamos 350 ms (tiempo suficiente para que TPO actualice su estado)
-     * y luego disparamos 'change' sobre el radio que TPO dejó checkeado
-     * dentro del variant-picker. Esto cubre el caso en que TPO use un
-     * mecanismo distinto al setter de .checked (ej: setAttribute, innerHTML, etc.)
+     * Cuando el usuario hace click en un swatch de color TPO:
+     *   1. Leemos el NOMBRE del color en el momento del click
+     *      (desde el input o texto del swatch clickeado).
+     *   2. Después de 350 ms, buscamos el radio nativo del
+     *      variant-picker cuyo `value` coincida con ese nombre
+     *      y le hacemos .click().
+     *   3. El .click() nativo dispara el `change` que variant-picker.js
+     *      necesita para fetchear la sección y cambiar la foto.
+     *
+     * DIFERENCIA con el enfoque anterior: no disparamos change sobre
+     * el radio que ya estaba chequeado (color viejo), sino que hacemos
+     * click en el radio del NUEVO color elegido en TPO.
      */
     document.addEventListener('click', function (e) {
       if (!e.target.closest) return;
-      /* Detectar clicks dentro de cualquier elemento de color TPO */
-      var tpoColor = e.target.closest('[class*="tpo_color"]');
-      if (!tpoColor) return;
 
-      setTimeout(function () {
-        var checked = variantPicker.querySelector('fieldset input[type="radio"]:checked');
-        if (checked && !checked._atelierFiring) {
-          checked._atelierFiring = true;
-          checked.dispatchEvent(new Event('change', { bubbles: true }));
-          checked._atelierFiring = false;
+      /* Detectar clicks dentro de cualquier elemento de color TPO */
+      var tpoColorEl = e.target.closest('[class*="tpo_color"]');
+      if (!tpoColorEl) return;
+
+      /* ── Leer el nombre del color en el momento del click ── */
+      var colorValue = '';
+
+      /* Subir por el DOM desde el target hasta encontrar el input o label */
+      var node = e.target;
+      while (node && node !== document.body) {
+        if (node.tagName === 'INPUT') {
+          colorValue = node.value || '';
+          break;
         }
+        if (node.tagName === 'LABEL') {
+          var inp = node.htmlFor
+            ? document.getElementById(node.htmlFor)
+            : node.querySelector('input');
+          if (inp) { colorValue = inp.value || ''; break; }
+        }
+        /* Si el nodo tiene clase tpo_color*, buscar input hijo */
+        if (node.className && typeof node.className === 'string' &&
+            node.className.includes('tpo_color')) {
+          var inp2 = node.querySelector('input');
+          if (inp2) { colorValue = inp2.value || ''; break; }
+        }
+        node = node.parentElement;
+      }
+
+      /* Fallback: aria-label, title o primer texto del elemento */
+      if (!colorValue) {
+        colorValue = (
+          tpoColorEl.getAttribute('aria-label') ||
+          tpoColorEl.title ||
+          tpoColorEl.textContent ||
+          ''
+        ).split('\n')[0].trim();
+      }
+
+      colorValue = (colorValue || '').trim();
+      if (!colorValue) return;
+
+      /* Esperar a que TPO procese el click, luego activar el radio nativo */
+      setTimeout(function () {
+        var matched = false;
+        variantPicker.querySelectorAll('fieldset input[type="radio"]').forEach(function (radio) {
+          if (matched) return;
+          var radioVal = (radio.value || '').toLowerCase().trim();
+          var color    = colorValue.toLowerCase();
+          /* Coincidencia exacta o parcial (por si hay diferencia de case) */
+          if (radioVal === color || radioVal.includes(color) || color.includes(radioVal)) {
+            radio.click(); /* .click() nativo dispara change y actualiza variante */
+            matched = true;
+          }
+        });
       }, 350);
     }, true);
   }
