@@ -33,6 +33,7 @@
     {% endif %}
 
     {{ content_for_header }}
+    {{ 'easify-custom.css' | asset_url | stylesheet_tag }}
   </head>
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
@@ -63,5 +64,6 @@
     {% if settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add-modal' %}
     {% endif %}
+    <script src="{{ 'easify-custom.js' | asset_url }}" defer></script>
   </body>
 </html>

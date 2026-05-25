@@ -1,0 +1,151 @@
+/* ============================================================
+   ATELIER — Easify / Globo Product Options custom styles
+   ============================================================ */
+
+/* ── 1. Ocultar tooltip de hover ─────────────────────────── */
+[class*="easify"] [class*="tooltip"],
+[class*="easify"] [class*="popup"],
+[class*="easify"] [class*="tippy"],
+[class*="globo"] [class*="tooltip"],
+[class*="globo"] [class*="popup"],
+[class*="globo"] [class*="tippy"],
+[class*="gpo"] [class*="tooltip"],
+[class*="gpo"] [class*="popup"],
+.tippy-box,
+.tippy-popper,
+[data-tippy-content],
+[class*="swatch-tooltip"],
+[class*="option-tooltip"],
+[class*="color-tooltip"],
+[class*="label-tooltip"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ── 2. Tipografía — labels de opciones ──────────────────── */
+[class*="easify"] label,
+[class*="easify"] [class*="label"],
+[class*="easify"] [class*="title"],
+[class*="easify"] [class*="name"],
+[class*="globo"] label,
+[class*="globo"] [class*="label"],
+[class*="globo"] [class*="title"],
+[class*="globo"] [class*="option-name"],
+[class*="gpo"] label,
+[class*="gpo"] [class*="label"],
+[class*="gpo"] [class*="title"] {
+  font-family: var(--font-primary--family) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--color-foreground) !important;
+}
+
+/* Texto de las opciones (chips, botones) */
+[class*="easify"] [class*="option-value"],
+[class*="easify"] [class*="swatch-label"],
+[class*="easify"] [class*="item-label"],
+[class*="easify"] [class*="option-item"] span,
+[class*="globo"] [class*="option-value"],
+[class*="globo"] [class*="swatch-label"],
+[class*="globo"] [class*="item-label"],
+[class*="globo"] [class*="option-item"] span,
+[class*="gpo"] [class*="option-value"],
+[class*="gpo"] [class*="swatch-label"],
+[class*="gpo"] [class*="item-label"] {
+  font-family: var(--font-body--family) !important;
+  font-size: 0.875rem !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* ── 3. Input de grabado ─────────────────────────────────── */
+[class*="easify"] input[type="text"],
+[class*="easify"] textarea,
+[class*="globo"] input[type="text"],
+[class*="globo"] textarea,
+[class*="gpo"] input[type="text"],
+[class*="gpo"] textarea {
+  font-family: var(--font-body--family) !important;
+  font-size: 0.875rem !important;
+  border: 1.5px solid var(--color-border, #e0dbd3) !important;
+  border-radius: 6px !important;
+  padding: 10px 14px !important;
+  background: transparent !important;
+  color: var(--color-foreground) !important;
+  transition: border-color 0.15s ease !important;
+  outline: none !important;
+}
+
+[class*="easify"] input[type="text"]:focus,
+[class*="easify"] textarea:focus,
+[class*="globo"] input[type="text"]:focus,
+[class*="globo"] textarea:focus,
+[class*="gpo"] input[type="text"]:focus,
+[class*="gpo"] textarea:focus {
+  border-color: var(--color-foreground) !important;
+  box-shadow: none !important;
+}
+
+/* ── 4. Plateado / Dorado — botones con círculo de color ─── */
+/* Estos estilos se aplican vía JS (ver easify-custom.js)    */
+.atelier-metal-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 14px !important;
+  border: 1.5px solid var(--color-border, #e0dbd3) !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  font-family: var(--font-body--family) !important;
+  font-size: 0.875rem !important;
+  color: var(--color-foreground) !important;
+  transition: border-color 0.15s, background 0.15s !important;
+  user-select: none !important;
+}
+
+.atelier-metal-chip:hover {
+  border-color: var(--color-foreground) !important;
+}
+
+.atelier-metal-chip.is-selected {
+  border-color: var(--color-foreground) !important;
+  background: var(--color-foreground) !important;
+  color: var(--color-background, #fff) !important;
+}
+
+.atelier-metal-chip.is-selected .atelier-metal-dot {
+  box-shadow: 0 0 0 2px var(--color-background, #fff) !important;
+}
+
+.atelier-metal-dot {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  border: 1px solid rgba(0,0,0,0.12) !important;
+}
+
+.atelier-metal-dot--silver {
+  background: linear-gradient(135deg, #e8e8e8 0%, #a8a8a8 50%, #d4d4d4 100%) !important;
+}
+
+.atelier-metal-dot--gold {
+  background: linear-gradient(135deg, #f5e199 0%, #c9a84c 50%, #f0d060 100%) !important;
+}
+
+/* ── 5. Mensaje de error de grabado ──────────────────────── */
+.atelier-grabado-error {
+  display: none;
+  font-family: var(--font-body--family);
+  font-size: 0.75rem;
+  color: #c0392b;
+  margin-top: 4px;
+}
+
+.atelier-grabado-error.is-visible {
+  display: block;
+}
