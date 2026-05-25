@@ -20,28 +20,39 @@
   pointer-events: none !important;
 }
 
-/* ── 2. Tipografía — labels de cada opción ───────────────── */
-/* Los labels tienen font-family inline desde la app; !important los pisa */
+/* ── 2. Tipografía — aplicar Outfit a TODO el bloque TPO ──── */
+/* Usar * para alcanzar opciones condicionales/anidadas también */
+.tpo_option-set-wrapper,
+.tpo_option-set-wrapper * {
+  font-family: 'Outfit', sans-serif !important;
+  text-transform: none !important;
+}
+
+/* Labels de sección: peso 600, tamaño pequeño */
 .tpo_option-set-wrapper .form__label,
-.tpo_option-label,
-[class*="tpo_option-label"] {
+[class*="tpo_option-label"],
+[class*="tpo_label"],
+[class*="tpo_option-name"],
+[class*="tpo_title"],
+[class*="tpo_heading"] {
   font-family: 'Outfit', sans-serif !important;
   font-size: 0.78rem !important;
   font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.1em !important;
+  text-transform: none !important;
+  letter-spacing: 0.04em !important;
   color: var(--color-foreground) !important;
 }
 
-/* Texto dentro de chips / botones / swatches */
+/* Texto de chips / botones / swatches */
 .tpo_button_option_value,
 [class*="tpo_swatch-label"],
 [class*="tpo_item-label"],
 [class*="tpo_option-value"] {
   font-family: 'Outfit', sans-serif !important;
-  font-size: 0.85rem !important;
+  font-size: 0.875rem !important;
   font-weight: 400 !important;
-  letter-spacing: 0.03em !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
 }
 
 /* ── 3. Input de texto (grabado) ─────────────────────────── */
@@ -60,6 +71,7 @@
   outline: none !important;
   width: 100% !important;
   box-sizing: border-box !important;
+  text-transform: none !important;
 }
 
 .tpo_option-input.tpo_text-box:focus,
@@ -90,6 +102,7 @@
   font-family: 'Outfit', sans-serif !important;
   font-size: 0.875rem !important;
   font-weight: 400 !important;
+  text-transform: none !important;
   color: var(--color-foreground) !important;
   transition: border-color 0.15s, background 0.15s !important;
   user-select: none !important;
@@ -136,6 +149,7 @@
   color: #c0392b;
   margin-top: 4px;
   line-height: 1.4;
+  text-transform: none;
 }
 
 .atelier-grabado-error.is-visible {
