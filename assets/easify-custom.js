@@ -27,15 +27,14 @@
   /* Contenedor principal del app TPO */
   var APP_SELECTORS = '.tpo_option-set-wrapper, [class*="tpo_"]';
 
-  /* Selectores de tooltips TPO para ocultar */
+  /* Selectores de tooltips TPO para ocultar.
+     EXCEPCIÓN: .tpo_color-swatches-tooltip se deja visible
+     porque muestra el nombre y precio de cada color de cuero. */
   var TOOLTIP_SELECTORS = [
-    '.tpo_color-swatches-tooltip',
     '.tpo_image-swatches-tooltip',
     '.tpo_option-tooltip-content',
     '.tpo_option-tooltip',
     '.tpo_buttons-tooltip',
-    '[class*="tpo_"][class*="tooltip"]',
-    '[class*="tpo_"][class*="Tooltip"]',
   ].join(', ');
 
   /* ── 1. Ocultar tooltips ─────────────────────────────────── */

@@ -6,12 +6,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
 
 /* ── 1. Ocultar tooltips de hover ─────────────────────────── */
-.tpo_color-swatches-tooltip,
+/* EXCEPCIÓN: .tpo_color-swatches-tooltip se deja visible
+   porque muestra nombre y precio de cada color de cuero.    */
 .tpo_image-swatches-tooltip,
 .tpo_option-tooltip-content,
 .tpo_option-tooltip,
 .tpo_buttons-tooltip,
-[class*="tpo_"][class*="tooltip"],
 [class*="tpo_"][class*="Tooltip"],
 [class*="tpo_"][class*="popup"] {
   display: none !important;
