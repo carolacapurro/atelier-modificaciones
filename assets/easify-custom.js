@@ -87,27 +87,25 @@
       label.dataset.atelierMetal = metalKey;
       label.classList.add('atelier-metal-chip');
 
-      /* Sincronizar is-selected con el input de radio/checkbox */
+      /* Sincronizar is-selected con el input interno */
       var input = label.querySelector('input[type="radio"], input[type="checkbox"]');
       if (input) {
         syncSelected(label, input);
         input.addEventListener('change', function () {
-          var name = input.name;
-          if (name) {
-            document.querySelectorAll('input[name="' + CSS.escape(name) + '"]').forEach(function (sib) {
-              var sibLabel = sib.closest('label[data-atelier-metal]');
-              if (sibLabel) sibLabel.classList.remove('is-selected');
-            });
-          }
           syncSelected(label, input);
         });
       }
 
+      /* Single-select: al clickear, desmarcar hermanos dentro del MISMO grupo.
+         Usamos closest() para subir al contenedor común (.tpo_buttons-wrapper),
+         no solo al parentElement inmediato (que es el wrapper del botón individual). */
       label.addEventListener('click', function () {
-        var parent = label.parentElement;
-        if (parent) {
-          parent.querySelectorAll('label[data-atelier-metal]').forEach(function (sib) {
-            sib.classList.remove('is-selected');
+        var group = label.closest(
+          '.tpo_buttons-wrapper, [class*="tpo_button"][class*="wrapper"], .tpo_option-container'
+        );
+        if (group) {
+          group.querySelectorAll('label[data-atelier-metal]').forEach(function (sib) {
+            if (sib !== label) sib.classList.remove('is-selected');
           });
         }
         label.classList.add('is-selected');
@@ -282,7 +280,62 @@
     findAndValidateGrabadoInputs(root);
   }
 
-  /* ── 4. Scroll de fotos al hacer hover sobre el gallery ─────── */
+  /* ── 4. Bridge: variant-picker ↔ TPO color swatches ────────── */
+  /*
+   * Problema: cuando el app TPO marca un input nativo con
+   *   input.checked = true
+   * el browser NO dispara el evento 'change' automáticamente,
+   * por lo que el <variant-picker> del tema nunca actualiza la imagen.
+   *
+   * Solución: parchar el setter de .checked en los inputs del
+   * variant-picker para que siempre dispare 'change' al activarse.
+   */
+  function initVariantBridge() {
+    var variantPicker = document.querySelector('variant-picker');
+    if (!variantPicker) return;
+
+    var nativeDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked');
+
+    function patchInput(input) {
+      if (input._atelierPatched) return;
+      input._atelierPatched = true;
+
+      Object.defineProperty(input, 'checked', {
+        configurable: true,
+        get: function () {
+          return nativeDescriptor.get.call(this);
+        },
+        set: function (val) {
+          var was = nativeDescriptor.get.call(this);
+          nativeDescriptor.set.call(this, val);
+          /* Si se acaba de activar y no era un disparo nuestro → disparar change */
+          if (val && !was && !this._atelierFiring) {
+            this._atelierFiring = true;
+            this.dispatchEvent(new Event('change', { bubbles: true }));
+            this._atelierFiring = false;
+          }
+        },
+      });
+    }
+
+    /* Parchar todos los inputs radio actuales */
+    variantPicker.querySelectorAll('input[type="radio"]').forEach(patchInput);
+
+    /* Parchar también los que se agreguen después (morphing del tema) */
+    new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        m.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return;
+          if (node.tagName === 'INPUT' && node.type === 'radio') patchInput(node);
+          if (node.querySelectorAll) {
+            node.querySelectorAll('input[type="radio"]').forEach(patchInput);
+          }
+        });
+      });
+    }).observe(variantPicker, { childList: true, subtree: true });
+  }
+
+  /* ── 5. Scroll de fotos al hacer hover sobre el gallery ─────── */
   /*
    * Cuando el cursor está sobre la galería de fotos y el usuario scrollea,
    * avanzamos/retrocedemos slides en lugar de scrollear la página.
@@ -321,6 +374,7 @@
 
   function init() {
     runAll(document);
+    initVariantBridge();
     initGalleryHoverScroll();
 
     /* Las apps de opciones cargan dinámicamente → observar el DOM */
