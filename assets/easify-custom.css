@@ -1,7 +1,9 @@
 /* ============================================================
    ATELIER — Easify / TPO Product Options custom styles
-   Selectores basados en la estructura real del DOM (prefijo tpo_)
    ============================================================ */
+
+/* ── Font import ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
 
 /* ── 1. Ocultar tooltips de hover ─────────────────────────── */
 .tpo_color-swatches-tooltip,
@@ -18,35 +20,37 @@
   pointer-events: none !important;
 }
 
-/* ── 2. Tipografía — label principal de cada opción ──────── */
-/* Los labels tienen font-family inline desde la app; usamos !important */
+/* ── 2. Tipografía — labels de cada opción ───────────────── */
+/* Los labels tienen font-family inline desde la app; !important los pisa */
 .tpo_option-set-wrapper .form__label,
 .tpo_option-label,
-.tpo_option-set-wrapper [class*="tpo_option-label"] {
-  font-family: var(--font-heading--family, var(--font-primary--family)) !important;
-  font-size: 0.8rem !important;
+[class*="tpo_option-label"] {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.78rem !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.1em !important;
   color: var(--color-foreground) !important;
 }
 
-/* Texto dentro de los chips / botones / swatches */
+/* Texto dentro de chips / botones / swatches */
 .tpo_button_option_value,
-.tpo_option-set-wrapper [class*="tpo_swatch-label"],
-.tpo_option-set-wrapper [class*="tpo_item-label"],
-.tpo_option-set-wrapper [class*="tpo_option-value"] {
-  font-family: var(--font-body--family) !important;
-  font-size: 0.875rem !important;
-  letter-spacing: 0.02em !important;
+[class*="tpo_swatch-label"],
+[class*="tpo_item-label"],
+[class*="tpo_option-value"] {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.85rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.03em !important;
 }
 
 /* ── 3. Input de texto (grabado) ─────────────────────────── */
 .tpo_option-input.tpo_text-box,
 .tpo_option-input[type="text"],
 .tpo_option-set-wrapper textarea {
-  font-family: var(--font-body--family) !important;
+  font-family: 'Outfit', sans-serif !important;
   font-size: 0.875rem !important;
+  font-weight: 400 !important;
   border: 1.5px solid var(--color-border, #e0dbd3) !important;
   border-radius: 6px !important;
   padding: 10px 14px !important;
@@ -66,18 +70,26 @@
 }
 
 /* ── 4. Plateado / Dorado — chips con círculo metálico ────── */
-/* Estos estilos son inyectados vía JS (easify-custom.js)     */
+
+/* Ocultar el círculo nativo del app (tiene background-color inline) */
+.atelier-metal-chip > span[style*="background"],
+.atelier-metal-chip > div[style*="background"],
+.atelier-metal-chip > img {
+  display: none !important;
+}
+
 .atelier-metal-chip {
   display: inline-flex !important;
   align-items: center !important;
   gap: 8px !important;
-  padding: 8px 14px !important;
+  padding: 8px 16px !important;
   border: 1.5px solid var(--color-border, #e0dbd3) !important;
   border-radius: 6px !important;
   background: transparent !important;
   cursor: pointer !important;
-  font-family: var(--font-body--family) !important;
+  font-family: 'Outfit', sans-serif !important;
   font-size: 0.875rem !important;
+  font-weight: 400 !important;
   color: var(--color-foreground) !important;
   transition: border-color 0.15s, background 0.15s !important;
   user-select: none !important;
@@ -97,6 +109,7 @@
   box-shadow: 0 0 0 2px var(--color-background, #fff) !important;
 }
 
+/* Nuestro círculo metálico inyectado por JS */
 .atelier-metal-dot {
   width: 16px !important;
   height: 16px !important;
@@ -117,8 +130,9 @@
 /* ── 5. Mensaje de error del grabado ─────────────────────── */
 .atelier-grabado-error {
   display: none;
-  font-family: var(--font-body--family);
+  font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
+  font-weight: 400;
   color: #c0392b;
   margin-top: 4px;
   line-height: 1.4;

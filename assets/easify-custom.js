@@ -86,7 +86,12 @@
         item.dataset.atelierMetal = metalKey;
         item.classList.add('atelier-metal-chip');
 
-        /* Círculo de color metálico */
+        /* Ocultar el círculo nativo del app (tiene background-color inline) */
+        item.querySelectorAll('span[style*="background"], div[style*="background"], img').forEach(function (native) {
+          native.style.display = 'none';
+        });
+
+        /* Insertar nuestro círculo metálico */
         var dot = document.createElement('span');
         dot.className = 'atelier-metal-dot ' + config.dotClass;
         dot.setAttribute('aria-hidden', 'true');
