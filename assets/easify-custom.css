@@ -167,7 +167,20 @@
   box-shadow: 0 0 0 2px var(--color-background, #fff) !important;
 }
 
-/* ── 6. Mensaje de error del grabado ─────────────────────── */
+/* ── 6. Scroll del producto: opciones se scrollean, fotos sticky ── */
+/*
+ * Las fotos (media-gallery) ya tienen sticky-content hardcodeado en el tema.
+ * Si el admin tiene "sticky options" activado también, lo desactivamos aquí
+ * para que las opciones scrolleen naturalmente.
+ */
+@media screen and (width >= 750px) {
+  .product-details.sticky-content--desktop {
+    position: static !important;
+    top: unset !important;
+  }
+}
+
+/* ── 7. Mensaje de error del grabado ─────────────────────── */
 .atelier-grabado-error {
   display: none;
   font-size: 0.72rem;

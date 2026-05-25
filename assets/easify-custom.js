@@ -282,8 +282,46 @@
     findAndValidateGrabadoInputs(root);
   }
 
+  /* ── 4. Scroll de fotos al hacer hover sobre el gallery ─────── */
+  /*
+   * Cuando el cursor está sobre la galería de fotos y el usuario scrollea,
+   * avanzamos/retrocedemos slides en lugar de scrollear la página.
+   * Cuando el cursor NO está sobre la galería, el scroll afecta la página
+   * normalmente (opciones suben/bajan).
+   */
+  function initGalleryHoverScroll() {
+    document.querySelectorAll('media-gallery').forEach(function (gallery) {
+      var accumY = 0;
+      var THRESHOLD = 80; /* píxeles acumulados antes de avanzar un slide */
+
+      gallery.addEventListener('wheel', function (e) {
+        /* Ignorar scroll horizontal (thumbnails laterales, etc.) */
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+        /* Acceder al slideshow interno del custom element */
+        var slideshow;
+        try { slideshow = gallery.slideshow; } catch (_) { return; }
+        if (!slideshow) return;
+
+        var slides = slideshow.slides;
+        if (!slides || slides.length <= 1) return; /* solo 1 foto → no hay nada que ciclar */
+
+        e.preventDefault(); /* evitar que la página scrollee */
+
+        accumY += e.deltaY;
+
+        if (Math.abs(accumY) >= THRESHOLD) {
+          var dir = accumY > 0 ? 1 : -1;
+          accumY = 0;
+          slideshow.select(slideshow.current + dir);
+        }
+      }, { passive: false });
+    });
+  }
+
   function init() {
     runAll(document);
+    initGalleryHoverScroll();
 
     /* Las apps de opciones cargan dinámicamente → observar el DOM */
     var observer = new MutationObserver(function (mutations) {
